@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'illust_ya_tools'
+
+p IllustYaTools.main
