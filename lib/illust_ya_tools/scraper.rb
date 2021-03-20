@@ -10,19 +10,29 @@ class Scraper
   BASE_URL = "https://www.irasutoya.com"
 
   def begin
-    document = doc_open(BASE_URL)
-
-    # First, nokogiri walk to feature theme and stored category for Next step
+    # First, scraper walk to feature theme and stored category for Next step
+    categories_page = doc_open(BASE_URL)
     categories = []
-    category_links = document.xpath('//*[@id="section_banner"]/a')
-    category_links.each { |category| 
-      link = category.attributes['href'].value
+    category_docs = categories_page.xpath('//*[@id="section_banner"]/a')
+    category_docs.each { |category_doc| 
+      link_url = category_doc.attributes['href'].value
       # Skip instagram link
-      next if link == "https://www.instagram.com/irasutoya/"
-      img = category.children.select { |e| e.name == "img" }.first
+      next if link_url == "https://www.instagram.com/irasutoya/"
+      img = category_doc.children.select { |e| e.name == "img" }.first
       # irasutoya has special contents. if special content, link url to absolute
-      categories.push(Category.new(img.name, link, link.include?("https://www.irasutoya.com")))
+      categories.push(Category.new(img.name, link_url, link_url.include?(BASE_URL)))
     }
+
+    # Second scraper walk to category page and collect sub category 
+    sub_categories = []
+    categories.each { |category| 
+      sub_categories_page = doc_open(URI.join(BASE_URL, category.link_url))
+      sub_category_docs = sub_categories_page.xpath('//*[@id="banners"]/a')
+      sub_category_docs.each { |sub_category_doc| 
+
+      }
+    }
+
     binding.pry
   end
 
