@@ -2,6 +2,7 @@ require 'nokogiri'
 require 'open-uri'
 require 'pry'
 require 'csv'
+require 'selenium-webdriver'
 
 Category = Struct.new(:name, :link_url, :special)
 SubCategory = Struct.new(:category, :name, :link_url)

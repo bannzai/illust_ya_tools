@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
   spec.add_dependency 'nokogiri'
+  spec.add_dependency 'selenium-webdriver'
   spec.add_development_dependency 'pry-stack_explorer'
   spec.add_development_dependency 'pry-byebug'
   spec.add_development_dependency 'pry-doc'
