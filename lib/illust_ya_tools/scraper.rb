@@ -32,6 +32,8 @@ class Scraper
       categories.push(Category.new(name, link_url, link_url.include?(BASE_URL)))
     }
 
+    puts "categories.count: #{categories.count}"
+
     # Second scraper walk to category page and collect sub category 
     sub_categories = []
     categories.each { |category| 
@@ -48,6 +50,7 @@ class Scraper
         sub_categories.push(SubCategory.new(category, name, link_url))
       }
     }
+    puts "sub_categories.count: #{sub_categories.count}"
 
     # Third scraper walk to sub category page and collect each final elements 
     elements = []
@@ -56,23 +59,26 @@ class Scraper
       elements.push(walk_to_next_element_page(element_page, sub_category, 0))
       elements = elements.flatten!
     }
+    puts "elements.count: #{elements.count}"
 
     monsters = []
     elements.each { |element|
       element_page = doc_open(element.link_url)
       name = element_page.xpath('//*[@id="post"]/div[1]/h2').first
       next if name.nil?
-      image_url = element_page.xpath('//*[@id="post"]/div[2]/div[1]/a/img').first
-      binding.pry
-      next if image_url.nil?
+      img = element_page.xpath('//*[@id="post"]/div[2]/div[1]/a/img').first
+      next if img.nil?
+      image_url = img.attributes&.[]("src").value
 
       attack_point = rand(100...10000)
       attack_point = attack_point / 100 * 100
       monsters.push(Monster.new(name, element.link_url, image_url, attack_point))
     }
+    puts "monsters.count: #{monsters.count}"
 
+    uniqued_monsters = monsters.uniq { |e| e.image_url }
     CSV.open("seed.csv", "wb") do |csv|
-      monsters.each { |monster| 
+      uniqued_monsters.each { |monster| 
         csv << [monster.name.children[0].to_s.delete_prefix("\n").delete_suffix("\n"), monster.page_url, monster.image_url, monster.attack_point]
       }
     end
@@ -115,6 +121,9 @@ class Scraper
   end
 
   def doc_open(url)
-    Nokogiri::HTML.parse(URI.open(URI.escape(url.to_s).to_s), nil, CHARSET)
+    option = Selenium::WebDriver::Chrome::Options.new(args: ['headless', 'no-sandbox'])
+    driver = Selenium::WebDriver.for(:chrome, options: option)
+    driver.navigate.to(url)
+    Nokogiri::HTML.parse(driver.page_source, nil, CHARSET)
   end
 end
